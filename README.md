@@ -5,7 +5,7 @@ A mobile-friendly MS Speech-Language Pathology MCQ preparation website presented
 ## Included
 
 - 6 courses
-- 1,800 four-option MCQs
+- 1,984 four-option MCQs, including 184 new questions from the three supplied Lecture 2 files
 - MCQ-only learning flow with no separate notes or flashcards
 - Immediate green feedback for a correct selection
 - Immediate red feedback for a wrong selection, with the correct option shown in green
@@ -28,6 +28,14 @@ A mobile-friendly MS Speech-Language Pathology MCQ preparation website presented
 4. Child Development
 5. Research Methodology
 6. Biomedical Sciences I
+
+## New Lecture 2 coverage
+
+- **Speech and Language Sciences:** 49 questions on the core linguistic branches, sound production and patterns, word and sentence structure, meaning in context, and language in society, cognition, brain and technology. Source: `Lec 2-branches of linguistics.ppt` (20 slides).
+- **Research Methodology:** 77 questions on approach versus design versus method, qualitative/quantitative/mixed methods, SLP research designs, study timing, and probability/nonprobability sampling. Source: `Lec#2 Types of research.pptx` (47 slides).
+- **Biomedical Sciences I:** 58 questions on external nose and nasal cavity anatomy, meatal drainage, vascular, sensory and lymphatic supply, paranasal sinuses, and the tonsillar ring. Source: `L2-ANATOMY OF NOSE & PARANASAL SINUSES.pdf` (36 pages).
+
+These questions are independent study items based on the supplied notes, not official examination questions. An anatomical drainage check was made against [NCBI Bookshelf's nasal cavity review](https://www.ncbi.nlm.nih.gov/books/NBK544232/) and [sinonasal anatomy review](https://www.ncbi.nlm.nih.gov/books/NBK499826/). The sampling items avoid two overly absolute statements in the research slides: random sampling does not guarantee an exactly representative realized sample, and cluster designs may examine everyone in a selected cluster or take a second-stage sample.
 
 ## Run locally
 

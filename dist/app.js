@@ -33,6 +33,7 @@
   function questionsFor({ courseId, topicId } = {}) {
     return DATA.questions.filter(q => (!courseId || q.courseId === courseId) && (!topicId || q.topicId === topicId));
   }
+  function courseQuestionCount(courseId) { return questionsFor({ courseId }).length; }
   function seededShuffle(items, seedText) {
     let seed = [...seedText].reduce((n, c) => ((n << 5) - n + c.charCodeAt(0)) | 0, 0) >>> 0;
     const list = [...items];
@@ -115,7 +116,7 @@
       <section class="home-stat-row">
         <span><strong>${DATA.meta.questionCount.toLocaleString()}</strong> MCQs</span><span><strong>${s.accuracy}%</strong> accuracy</span><span><strong>${s.missed}</strong> to review</span>
       </section>
-      <section class="home-course-section"><div class="section-title"><div><p class="eyebrow">Course-wise practice</p><h2>Choose a course</h2></div><button class="text-button" data-action="courses">View all</button></div><div class="home-course-grid">${DATA.courses.map(c => { const cs=stats(c.id); return `<button class="home-course-card" data-course="${c.id}" style="--course:${c.accent}"><span class="course-initial">${escapeHTML(c.short.slice(0,2))}</span><span><strong>${escapeHTML(c.title)}</strong><small>300 MCQs · ${cs.accuracy}% accuracy</small></span><b>→</b></button>`; }).join("")}</div></section>
+      <section class="home-course-section"><div class="section-title"><div><p class="eyebrow">Course-wise practice</p><h2>Choose a course</h2></div><button class="text-button" data-action="courses">View all</button></div><div class="home-course-grid">${DATA.courses.map(c => { const cs=stats(c.id); return `<button class="home-course-card" data-course="${c.id}" style="--course:${c.accent}"><span class="course-initial">${escapeHTML(c.short.slice(0,2))}</span><span><strong>${escapeHTML(c.title)}</strong><small>${courseQuestionCount(c.id)} MCQs · ${cs.accuracy}% accuracy${c.topics.some(t => t.id.includes('lecture2')) ? ' · New Lecture 2' : ''}</small></span><b>→</b></button>`; }).join("")}</div></section>
     `;
     bindActions();
     $$("[data-course]").forEach(btn => btn.addEventListener("click", () => go(`course/${btn.dataset.course}`)));
@@ -123,7 +124,7 @@
 
   function renderCourses() {
     app.innerHTML = `${pageHead("Course-wise question bank", "Choose a course", "Select a course, then practise a complete topic or a quick 10-question set.")}
-      <section class="course-browser-grid">${DATA.courses.map(c => { const cs=stats(c.id); const attempted=questionsFor({courseId:c.id}).filter(q => progress.answers[q.id]).length; return `<button class="course-browser-card" data-course="${c.id}" style="--course:${c.accent}"><span class="course-browser-icon">${escapeHTML(c.short.slice(0,2))}</span><div><p class="eyebrow">${c.topics.length} topics · 300 MCQs</p><h2>${escapeHTML(c.title)}</h2><p>${attempted} attempted · ${cs.accuracy}% accuracy</p>${meter(Math.round(attempted/300*100))}</div><span class="course-arrow">→</span></button>`; }).join("")}</section>`;
+      <section class="course-browser-grid">${DATA.courses.map(c => { const cs=stats(c.id); const total=courseQuestionCount(c.id); const attempted=questionsFor({courseId:c.id}).filter(q => progress.answers[q.id]).length; return `<button class="course-browser-card" data-course="${c.id}" style="--course:${c.accent}"><span class="course-browser-icon">${escapeHTML(c.short.slice(0,2))}</span><div><p class="eyebrow">${c.topics.length} topics · ${total} MCQs${c.topics.some(t => t.id.includes('lecture2')) ? ' · New Lecture 2' : ''}</p><h2>${escapeHTML(c.title)}</h2><p>${attempted} attempted · ${cs.accuracy}% accuracy</p>${meter(Math.round(attempted/total*100))}</div><span class="course-arrow">→</span></button>`; }).join("")}</section>`;
     $$("[data-course]").forEach(btn => btn.addEventListener("click", () => go(`course/${btn.dataset.course}`)));
   }
 
@@ -208,19 +209,21 @@
   function renderCourse(courseId, topicId) {
     const course = courseById(courseId);
     const s = stats(course.id);
+    const courseTotal = courseQuestionCount(course.id);
+    const orderedTopics = [...course.topics].sort((a, b) => Number(b.id.includes('lecture2')) - Number(a.id.includes('lecture2')) || a.number - b.number);
     app.innerHTML = `<section class="card course-banner" style="--course:${course.accent}">
-      <div class="course-banner-top"><div><p class="eyebrow">Riphah MS SLP course</p><h1>${escapeHTML(course.title)}</h1><div class="meta-row"><span>${escapeHTML(course.instructor)}</span><span>${course.topics.length} topics</span><span>${course.conceptCount} syllabus concepts</span><span>300 MCQs</span></div></div><div class="button-row"><button class="btn btn-primary" id="course-practice">Practice 50</button><button class="btn btn-secondary" id="course-exam">Mock exam</button></div></div>
-      <div style="margin-top:18px">${meter(Math.round(s.mastered / 300 * 100))}</div>
+      <div class="course-banner-top"><div><p class="eyebrow">Riphah MS SLP course</p><h1>${escapeHTML(course.title)}</h1><div class="meta-row"><span>${escapeHTML(course.instructor)}</span><span>${course.topics.length} topics</span><span>${course.conceptCount} key ideas</span><span>${courseTotal} MCQs</span></div></div><div class="button-row"><button class="btn btn-primary" id="course-practice">Practice 50</button><button class="btn btn-secondary" id="course-exam">Mock exam</button></div></div>
+      <div style="margin-top:18px">${meter(Math.round(s.mastered / courseTotal * 100))}</div>
     </section>
     <div class="mcq-section-head"><div><p class="eyebrow">Topic-wise MCQ bank</p><h2>Choose a topic and begin answering</h2><p class="lede">Definitions, importance, examples, and supporting detail appear inside the explanation after each submitted answer.</p></div></div>
     <section class="topic-mcq-grid" style="--course:${course.accent}">
-      ${course.topics.map(topic => {
+      ${orderedTopics.map(topic => {
         const topicQuestions = questionsFor({ topicId: topic.id });
         const attempted = topicQuestions.filter(q => progress.answers[q.id]).length;
         const topicCorrect = topicQuestions.filter(q => progress.answers[q.id]?.lastCorrect === true).length;
         return `<article class="card topic-mcq-card ${topic.id === topicId ? "highlighted" : ""}">
           <div class="topic-mcq-number">${String(topic.number).padStart(2,"0")}</div>
-          <div><p class="eyebrow">${topicQuestions.length} MCQs</p><h3>${escapeHTML(topic.title)}</h3><p>${topic.concepts.length} syllabus concepts tested through definition, discrimination, and application questions.</p></div>
+          <div><p class="eyebrow">${topicQuestions.length} MCQs${topic.id.includes('lecture2') ? ' · NEW LECTURE 2' : ''}</p><h3>${escapeHTML(topic.title)}</h3><p>${topic.concepts.length} key ideas tested through definition, discrimination, and application questions.</p></div>
           <div class="topic-mcq-progress"><span>${attempted} attempted</span><span>${topicCorrect} currently correct</span></div>
           ${meter(Math.round(attempted / topicQuestions.length * 100))}
           <div class="button-row"><button class="btn btn-primary" data-topic-full="${topic.id}">Start all ${topicQuestions.length}</button><button class="btn btn-secondary" data-topic-quick="${topic.id}">Quick 10</button></div>
